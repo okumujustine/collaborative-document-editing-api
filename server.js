@@ -31,7 +31,8 @@ mongoose.connect(mongoDBURL,
         useNewUrlParser: true,
         useUnifiedTopology: true
     }
-);
+).then(() => console.log("connected to database"))
+    .catch(err => console.log("failed to connect to database", err))
 
 
 io.on("connection", socket => {
