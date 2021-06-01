@@ -17,7 +17,7 @@ const io = require('socket.io')(http, {
 })
 
 const DocumentSchema = require('./src/document/schema/Document')
-const { findDocument, findMyDocuments, findDocumentById } = require('./src/document/operations/find')
+const { findDocument, findMyDocuments, findDocumentById, findLatestDocuments } = require('./src/document/operations/find')
 const { findOrCreateUser } = require('./src/user/operations/find')
 const { createDocument } = require('./src/document/operations/create')
 const { addDocumentEditor } = require('./src/document/operations/update')
@@ -77,6 +77,13 @@ app.post('/my-documents', async function (req, res) {
     if (!documents) return res.status(400).send({ data: "Failed to find your documents" })
     return res.status(200).send({ documents: documents })
 })
+
+app.post('/lastest-document', async function (req, res) {
+    const documents = await findLatestDocuments(req.body)
+    if (!documents) return res.status(400).send({ data: "Failed to find your documents" })
+    return res.status(200).send({ document: documents })
+})
+
 
 app.post('/add-document', async function (req, res) {
     const newDoc = await createDocument(req.body)

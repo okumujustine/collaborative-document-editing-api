@@ -13,6 +13,12 @@ async function findMyDocuments({ id: userId, email }) {
     return await DocumentSchema.find({ $or: [{ admin: userId }, { editors: { $in: email } }] }).populate("admin").sort({ createdAt: -1 })
 }
 
+async function findLatestDocuments({ id: userId, email }) {
+    if (userId == null) return;
+    return await DocumentSchema.find({ $or: [{ admin: userId }, { editors: { $in: email } }] }).populate("admin").limit(1)
+}
+
+
 async function findDocumentById(id) {
     return await DocumentSchema.findOne({ _id: id }).populate("admin")
 }
@@ -20,5 +26,6 @@ async function findDocumentById(id) {
 module.exports = {
     findDocument,
     findMyDocuments,
-    findDocumentById
+    findDocumentById,
+    findLatestDocuments
 }
