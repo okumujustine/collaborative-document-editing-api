@@ -15,6 +15,8 @@ const io = require('socket.io')(http, {
         method: ['GET', 'POST']
     }
 })
+const mailjet = require('node-mailjet')
+    .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
 
 const DocumentSchema = require('./src/document/schema/Document')
 const { findDocument, findMyDocuments, findDocumentById, findLatestDocuments } = require('./src/document/operations/find')
@@ -91,9 +93,37 @@ app.post('/add-document', async function (req, res) {
     return res.status(200).send({ document })
 })
 
+async function requestToEditEmail(editorDetails) {
+    mailjet
+        .post("send", { 'version': 'v3.1' })
+        .request({
+            "Messages": [{
+                "From": {
+                    "Email": "okumujustine01@gmail.com",
+                    "Name": "justine@collabediting.com"
+                },
+                "To": [{
+                    "Email": editorDetails.editorEmail,
+                    "Name": editorDetails.editorEmail
+                }],
+                "Subject": "Inviation to edit a document!",
+                "TextPart": `Dear ${editorDetails.editorEmail}, you have been invited by ${editorDetails.adminEmail} to edit a document!`,
+                "HTMLPart": `<h3>Dear ${editorDetails.editorEmail}, welcome to edit this <a href=\"${editorDetails.documentURL}\">Document here</a>!</h3><br />May you find a great experience!`
+            }]
+        })
+        .then((result) => {
+            console.log("Email successfully send!")
+        })
+        .catch((err) => {
+            console.log("Failed to send email, try again!")
+        })
+
+}
+
 app.post('/add-editor', async function (req, res) {
     const editorDetails = req.body
     await addDocumentEditor(editorDetails)
+    await requestToEditEmail(editorDetails)
     updatedDocument = await findDocumentById(editorDetails?.documentId)
     return res.status(200).send({ document: updatedDocument })
 })
